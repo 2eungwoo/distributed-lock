@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { LockModule } from '../lock/lock.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RedisModule } from '../redis/redis.module';
+import { ProductModule } from '../product/product.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { RedisModule } from '../redis/redis.module';
     }),
     LockModule,
     RedisModule,
+    ProductModule,
   ],
   controllers: [AppController],
   providers: [AppService],
