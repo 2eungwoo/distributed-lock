@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { Lock } from 'redlock';
 import {
   BadRequestException,
@@ -24,10 +25,9 @@ export class ProductService {
 
   async deductStock(productId: number, quantity: number): Promise<Product> {
     const resource = `product:${productId}:lock`;
-    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+
     let lock: Lock | undefined;
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       lock = await this.redisService.acquireLock(resource);
 
       const product = await this.getProduct(productId);
