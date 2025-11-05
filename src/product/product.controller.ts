@@ -35,4 +35,14 @@ export class ProductController {
   ): Promise<Product> {
     return this.productService.deductStock(id, deductStockDto.quantity);
   }
+
+  @Post('reset')
+  reset(): Promise<Product> {
+    return this.productService.resetProducts();
+  }
+
+  @Post('clear')
+  clear(): Promise<void> {
+    return this.productService.clearProducts();
+  }
 }

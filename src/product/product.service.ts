@@ -59,4 +59,13 @@ export class ProductService {
       );
     }
   }
+
+  async clearProducts(): Promise<void> {
+    await this.productRepository.clear();
+  }
+
+  async resetProducts(): Promise<Product> {
+    await this.clearProducts();
+    return this.createProduct('Test Product', 100);
+  }
 }

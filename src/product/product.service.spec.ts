@@ -11,6 +11,7 @@ describe('ProductService', () => {
     create: jest.fn(),
     save: jest.fn(),
     findOne: jest.fn(),
+    clear: jest.fn(),
   };
 
   const mockRedisService = {
@@ -34,6 +35,7 @@ describe('ProductService', () => {
     }).compile();
 
     service = module.get<ProductService>(ProductService);
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -68,6 +70,37 @@ describe('ProductService', () => {
       expect(productInDb.stock).toBe(0);
       expect(mockRedisService.acquireLock).toHaveBeenCalledTimes(100);
       expect(mockRedisService.releaseLock).toHaveBeenCalledTimes(100);
+    });
+  });
+
+  describe('clearProducts', () => {
+    it('should call the clear method on the product repository', async () => {
+      // when
+      await service.clearProducts();
+
+      // then
+      expect(mockProductRepository.clear).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('resetProducts', () => {
+    it('should clear all products and create a new one', async () => {
+      // given
+      const newProduct = { id: 1, name: 'Test Product', stock: 100 };
+      mockProductRepository.create.mockReturnValue(newProduct);
+      mockProductRepository.save.mockResolvedValue(newProduct);
+
+      // when
+      const result = await service.resetProducts();
+
+      // then
+      expect(mockProductRepository.clear).toHaveBeenCalledTimes(1);
+      expect(mockProductRepository.create).toHaveBeenCalledWith({
+        name: 'Test Product',
+        stock: 100,
+      });
+      expect(mockProductRepository.save).toHaveBeenCalledWith(newProduct);
+      expect(result).toEqual(newProduct);
     });
   });
 });
