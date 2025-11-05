@@ -1,18 +1,21 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { ProductService } from './product.service';
 import { Product } from './product.entity';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { RedisService } from '../redis/redis.service';
 
 describe('ProductService', () => {
   let service: ProductService;
-  let productRepository: Repository<Product>;
 
   const mockProductRepository = {
     create: jest.fn(),
     save: jest.fn(),
     findOne: jest.fn(),
+  };
+
+  const mockRedisService = {
+    acquireLock: jest.fn(),
+    releaseLock: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -23,52 +26,48 @@ describe('ProductService', () => {
           provide: getRepositoryToken(Product),
           useValue: mockProductRepository,
         },
+        {
+          provide: RedisService,
+          useValue: mockRedisService,
+        },
       ],
     }).compile();
 
     service = module.get<ProductService>(ProductService);
-    productRepository = module.get<Repository<Product>>(
-      getRepositoryToken(Product),
-    );
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
-  describe('deductStock', () => {
-    it('동시에 100개의 재고 차감 요청 시 Race Condition 발생', async () => {
+  describe('deductStock with lock', () => {
+    it('분산 락을 사용하여 재고를 순차적으로 올바르게 차감', async () => {
       // given
-      // db 초기 재고라고 가정하고 함
       const initialStock = 100;
       const productInDb = { id: 1, name: 'Test Product', stock: initialStock };
-      // getProduct 호출마다 db 현재 상태 복제해서 리턴
-      mockProductRepository.findOne.mockImplementation(async () => {
-        return { ...productInDb };
+
+      mockProductRepository.findOne.mockImplementation(() =>
+        Promise.resolve({ ...productInDb }),
+      );
+      mockProductRepository.save.mockImplementation((product: Product) => {
+        productInDb.stock = product.stock;
+        return Promise.resolve(product);
       });
 
-      // save 호출로 db 상태 업데이트
-      mockProductRepository.save.mockImplementation(
-        async (product: Product) => {
-          productInDb.stock = product.stock;
-          return product;
-        },
-      );
+      // 락 획득 및 해제 모의 처리
+      const mockLock = { release: jest.fn().mockResolvedValue(undefined) };
+      mockRedisService.acquireLock.mockResolvedValue(mockLock);
 
       // when
-      const concurrentRequests = 100;
-      const promises = [];
-      for (let i = 0; i < concurrentRequests; i++) {
-        // 각 요청은 거의 동시에 `getProduct`를 호출하여 초기 재고(100)를 읽음
-        promises.push(service.deductStock(1, 1));
+      // 락이 순차적 실행을 보장하므로, for-loop로 동시성 없는 환경을 모의
+      for (let i = 0; i < 100; i++) {
+        await service.deductStock(1, 1);
       }
-      await Promise.all(promises);
 
       // then
-      // 모든 요청이 재고 100인 상태에서 시작하여 1을 뺀 99를 저장하려고 시도함
-      // 마지막 요청의 결과만 반영되어 최종 재고는 99가 됨
-      expect(productInDb.stock).not.toBe(0);
-      expect(productInDb.stock).toBe(99);
+      expect(productInDb.stock).toBe(0);
+      expect(mockRedisService.acquireLock).toHaveBeenCalledTimes(100);
+      expect(mockRedisService.releaseLock).toHaveBeenCalledTimes(100);
     });
   });
 });

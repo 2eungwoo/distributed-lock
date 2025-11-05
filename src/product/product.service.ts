@@ -1,3 +1,4 @@
+import { Lock } from 'redlock';
 import {
   BadRequestException,
   Injectable,
@@ -6,12 +7,14 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from './product.entity';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class ProductService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    private readonly redisService: RedisService,
   ) {}
 
   async createProduct(name: string, stock: number): Promise<Product> {
@@ -20,11 +23,23 @@ export class ProductService {
   }
 
   async deductStock(productId: number, quantity: number): Promise<Product> {
-    const product = await this.getProduct(productId);
-    this.validateStock(product, quantity);
+    const resource = `product:${productId}:lock`;
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+    let lock: Lock | undefined;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      lock = await this.redisService.acquireLock(resource);
 
-    product.stock -= quantity;
-    return this.productRepository.save(product);
+      const product = await this.getProduct(productId);
+      this.validateStock(product, quantity);
+
+      product.stock -= quantity;
+      return this.productRepository.save(product);
+    } finally {
+      if (lock) {
+        await this.redisService.releaseLock(lock);
+      }
+    }
   }
 
   async getProduct(productId: number): Promise<Product> {
