@@ -74,7 +74,7 @@ describe('ProductService', () => {
   });
 
   describe('clearProducts', () => {
-    it('should call the clear method on the product repository', async () => {
+    it('clear메소드가 호출된다', async () => {
       // when
       await service.clearProducts();
 
@@ -84,7 +84,7 @@ describe('ProductService', () => {
   });
 
   describe('resetProducts', () => {
-    it('should clear all products and create a new one', async () => {
+    it('모든 product 삭제 후 새로운 product 생성, 재고는 100개로', async () => {
       // given
       const newProduct = { id: 1, name: 'Test Product', stock: 100 };
       mockProductRepository.create.mockReturnValue(newProduct);

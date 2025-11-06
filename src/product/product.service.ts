@@ -65,7 +65,11 @@ export class ProductService {
   }
 
   async resetProducts(): Promise<Product> {
-    await this.clearProducts();
-    return this.createProduct('Test Product', 100);
+    await this.productRepository.clear();
+    const newProduct = this.productRepository.create({
+      name: 'Test Product',
+      stock: 100,
+    });
+    return this.productRepository.save(newProduct);
   }
 }
