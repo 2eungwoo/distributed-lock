@@ -40,7 +40,7 @@ export class RedisService implements OnModuleDestroy {
     }
   }
 
-  async acquireLock(resource: string, duration = 5000): Promise<Lock> {
+  async acquireLock(resource: string, duration = 3000): Promise<Lock> {
     try {
       const lock = await this.redlock.acquire([resource], duration);
       this.logger.debug(`락 획득 성공: ${resource}`);
