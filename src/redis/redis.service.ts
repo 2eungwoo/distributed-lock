@@ -29,6 +29,16 @@ export class RedisService implements OnModuleDestroy {
     });
   }
 
+  async checkConnection(): Promise<string> {
+    try {
+      const result = await this.redis.ping();
+      return result; // 'PONG'
+    } catch (error) {
+      this.logger.error('Redis 연결 실패', error);
+      return 'Error connecting to Redis';
+    }
+  }
+
   async acquireLock(resource: string, duration = 5000): Promise<Lock> {
     try {
       const lock = await this.redlock.acquire([resource], duration);
