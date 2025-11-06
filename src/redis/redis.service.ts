@@ -31,11 +31,12 @@ export class RedisService implements OnModuleDestroy {
 
   async checkConnection(): Promise<string> {
     try {
-      const result = await this.redis.ping();
-      return result; // 'PONG'
+      const results = await Promise.all(this.clients.map((c) => c.ping()));
+      this.logger.log(`Redis ping results: ${results.join(', ')}`);
+      return 'All Redis nodes are alive';
     } catch (error) {
       this.logger.error('Redis 연결 실패', error);
-      return 'Error connecting to Redis';
+      return 'Error connecting to Redis cluster';
     }
   }
 
