@@ -15,7 +15,7 @@ services:
 
   redis:
     image: redis:7
-    container_name: redis-lock-redis
+    container_name: redis
     ports:
       - '6666:6379'
 

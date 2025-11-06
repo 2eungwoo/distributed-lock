@@ -12,7 +12,7 @@ export class RedisService implements OnModuleDestroy {
     // Redlock 인스턴스는 싱글톤처럼 1개만 생성
     this.redlock = new Redlock([this.redis], {
       driftFactor: 0.01, // 시간 보정 계수
-      retryCount: 10, // 재시도 횟수
+      retryCount: 40, // 재시도 횟수
       retryDelay: 200, // 재시도 간격(ms)
       retryJitter: 200, // 랜덤 지연
       automaticExtensionThreshold: 500, // 만료 연장 임계값(ms)
@@ -59,7 +59,7 @@ export class RedisService implements OnModuleDestroy {
   // 최신 Redlock using() 문법 — critical section 예시
   async withLock(
     resource: string,
-    duration = 5000,
+    duration = 3000,
     fn: () => Promise<void>,
   ): Promise<void> {
     await this.redlock.using([resource], duration, async (signal) => {
