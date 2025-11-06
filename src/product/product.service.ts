@@ -9,7 +9,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Product } from './product.entity';
 import { RedisService } from '../redis/redis.service';
-import { Transactional } from 'typeorm-transactional';
 
 @Injectable()
 export class ProductService {
@@ -26,7 +25,6 @@ export class ProductService {
 
   async deductStock(productId: number, quantity: number): Promise<Product> {
     const resource = `product:${productId}:lock`;
-
     let lock: Lock | undefined;
     try {
       lock = await this.redisService.acquireLock(resource);
@@ -65,7 +63,6 @@ export class ProductService {
     await this.productRepository.clear();
   }
 
-  @Transactional()
   async resetProducts(): Promise<Product> {
     await this.productRepository.clear();
     const newProduct = this.productRepository.create({
