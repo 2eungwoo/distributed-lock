@@ -32,9 +32,7 @@ export class ProductService {
       this.validateStock(product, quantity);
 
       product.stock -= quantity;
-      console.log(
-        `[product.stock] ============= 현재 stock count : ${product.stock}`,
-      );
+      console.log(`[product.stock] 현재 stock count : ${product.stock}`);
       return this.productRepository.save(product);
     });
   }
