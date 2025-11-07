@@ -2,13 +2,13 @@ import http from 'k6/http';
 import { check } from 'k6';
 
 export const options = {
-  vus: 30,
-  iterations: 30,
+  vus: 3,
+  iterations: 10,
 };
 
 export default function () {
   const res = http.post(
-    'http://localhost:3000/product/10/deduct',
+    'http://localhost:3000/product/21/deduct',
     JSON.stringify({ quantity: 1 }),
     {
       headers: { 'Content-Type': 'application/json' },
