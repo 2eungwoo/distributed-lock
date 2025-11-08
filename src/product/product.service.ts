@@ -31,9 +31,6 @@ export class ProductService {
       const product = await this.getProduct(productId);
       this.validateStock(product, quantity);
 
-      if (product.stock <= 0) {
-        throw new Error('재고 0개, 남은 재고 없음, 차감 실패');
-      }
       console.log(`[product.stock] 현재 stock count : ${product.stock}`);
       return this.productRepository.save(product);
     });
