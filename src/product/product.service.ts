@@ -31,6 +31,7 @@ export class ProductService {
       const product = await this.getProduct(productId);
       this.validateStock(product, quantity);
 
+      product.stock -= quantity;
       console.log(`[product.stock] 현재 stock count : ${product.stock}`);
       return this.productRepository.save(product);
     });
