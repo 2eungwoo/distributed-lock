@@ -63,5 +63,8 @@
 > curl -X GET http://localhost:3000/product/{prodjctId}
 > ```
 
+### link
+> [blog](https://2eungwoo.tistory.com/entry/Redis-%EB%B6%84%EC%82%B0-%EB%9D%BD-%EB%A9%80%ED%8B%B0-%EC%9D%B8%EC%8A%A4%ED%84%B4%EC%8A%A4%EC%97%90%EC%84%9C-%EB%8B%A4%EC%8B%9C-%ED%95%B4%EB%B3%B4%EA%B8%B0)
+
 ### etc
 > updated 2025-11-08
